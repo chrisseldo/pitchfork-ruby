@@ -1,13 +1,17 @@
 #!/usr/bin/env ruby
 
+
 # Unofficial Pitchfork API for the Ruby language. 
 # Ported from Python Pitchfork API: (https://github.com/michalczaplinski/pitchfork)
 
 # Author: Christopher Selden
 # Email: cbpselden@gmail.com 
 
-# require 'nokogiri'
+require "nokogiri"
 # require 'nokogiri-styles'
+require "json"
+require "httparty"
+require "uri"
 
 # def replace_breaks(html)
 #   # Replaces all the <br> tags in the html with newlines '\n'
@@ -82,20 +86,18 @@ class Review
 #   end
 end
 
-require "json"
-require "httparty"
-require "nokogiri"
 
 def search(artist, album)
-
+  # subbing spaces with '%20' 
   query = (artist + "%20" + album)
-  query = query.gsub!(" ", "%20")
-
+  query = query.gsub(" ", "%20")
+  # making request to Pitchfork API
   request = HTTParty.get("http://pitchfork.com/search/ac/?query=" + query,
                         headers: {"User-Agent" => "chrisseldo/pitchfork-ruby-v0.1"})
   responses = JSON.parse(request.body)
   
   begin 
+    # creating array of reviews if there exists review(s)
     response = responses.collect {|x| x if x["label"] == "Reviews"}
     review_hash = response[1]['objects'][0]
   rescue 
@@ -105,22 +107,20 @@ def search(artist, album)
   url = review_hash["url"]
   matched_artist = review_hash["name"].split(' - ')[0]
 
-  full_url = 'http://pitchfork.com/' + url
+  full_url = URI::join('http://pitchfork.com', url)
   request = HTTParty.get(full_url,
                headers: {"User-Agent" => "chrisseldo/pitchfork-ruby-v0.1"})
   response = request.body
-  puts response
+  
   blob = Nokogiri::HTML(response) do |config|
     config.noerror
   end
+  
   if blob.css('review-multi').empty?
     matched_album = review_hash['name'].split(' - ')[1]
-    # puts blob
     a = Review.new(blob)
-    # puts a
-    # puts a.score
   else 
-    # puts blob.css('review-multi')
+    puts blob
   end
 
 end
