@@ -19,30 +19,31 @@
 #   return html
 # end
 
-# class Review
+class Review
 
 #   # Class representing the fetched review.
 #   # Includes methods for getting the score, the text of the review
 #   # (editorial), the album cover, label, year as well as the true
 #   # (matched) album and artist names.
+  def initialize(blob)
+  # def initialize(searched_artist, searched_album, matched_artist,
+  #                matched_album, query, url, blob)
+    # @searched_artist = searched_artist
+    # @searched_album = searched_album
+    # @matched_artist = matched_artist
+    # @matched_album = matched_album
+    # @query = query
+    # @url = url
+    @blob = blob
+  end
 
-#   def initialize(searched_artist, searched_album, matched_artist,
-#                  matched_album, query, url, blob)
-#     @searched_artist = searched_artist
-#     @searched_album = searched_album
-#     @matched_artist = matched_artist
-#     @matched_album = matched_album
-#     @query = query
-#     @url = url
-#     @blob = blob
-#   end
-
-#   def self.score
-#     # Returns the album score. 
-#     rating = @blob.find(class_='score').to_s
-#     rating = rating.strip.to_f
-#     return rating
-#   end
+  def score
+    # Returns the album score. 
+    # rating = @blob.xpath(@class='score')
+    # puts rating
+    # rating = rating[0].to_f
+    # return rating
+  end
 
 #   def self.editorial
 #     # Returns the text of the review. 
@@ -79,6 +80,7 @@
 #     label = label[:label.index(';')].strip
 #     return label
 #   end
+end
 
 require "json"
 require "httparty"
@@ -107,17 +109,18 @@ def search(artist, album)
   request = HTTParty.get(full_url,
                headers: {"User-Agent" => "chrisseldo/pitchfork-ruby-v0.1"})
   response = request.body
-  soup = Nokogiri::HTML(response) do |config|
+  puts response
+  blob = Nokogiri::HTML(response) do |config|
     config.noerror
   end
-  if soup.css('review-multi').empty?
+  if blob.css('review-multi').empty?
     matched_album = review_hash['name'].split(' - ')[1]
-
-    # return Review(artist, album, matched_artist, matched_album, query, url, soup)
+    # puts blob
+    a = Review.new(blob)
+    # puts a
+    # puts a.score
   else 
-    puts soup.css('review-multi')
+    # puts blob.css('review-multi')
   end
-
-end
 
 end
